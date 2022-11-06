@@ -13,12 +13,19 @@ import java.awt.Dialog;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javax.crypto.spec.IvParameterSpec;
 import javax.swing.JFileChooser;
@@ -68,7 +75,14 @@ public class Invoice_Listener implements ActionListener , ListSelectionListener{
                load(null,null);
                break;
            case "Save":
+       {
+           try {
                save();
+           } catch (IOException ex) {
+               Logger.getLogger(Invoice_Listener.class.getName()).log(Level.SEVERE, null, ex);
+           }
+       }
+                      
                break;
            case "Submit The Invoice":
                SubmitTheInvoice();
@@ -209,7 +223,79 @@ public class Invoice_Listener implements ActionListener , ListSelectionListener{
         }
         return null;
     }
-    private void save() {
+    private void save() throws IOException {
+               // HeaderModel headermodel = (HeaderModel) fram.gettable_line().getModel();
+            HeaderModel headermodel = (HeaderModel) fram.gettable_invoice().getModel();
+            for (int i = 0; i < headermodel.getinvoice().size();++i) {
+                System.out.println(headermodel.getinvoice().get(i).gettotal());
+                System.out.println(headermodel.getinvoice().get(i).getCustomer_name());            
+            }
+            
+          try (FileWriter writer = new FileWriter("test1.csv")) {
+            StringBuilder sb = new StringBuilder();
+            sb.append("Invoice Number,Customer Name,Invoice Date,Invoice Total" + '\n');
+
+            for (int i = 0; i < headermodel.getinvoice().size(); i++) {
+                
+               // sb.append(headermodel.getRowCount().get(i).getInvoice().getNumber());
+               // sb.append(',');
+                sb.append(headermodel.getinvoice().get(i).getNumber());
+                sb.append(',');
+                sb.append(headermodel.getinvoice().get(i).getCustomer_name());
+                sb.append(',');
+                sb.append(headermodel.getinvoice().get(i).getDate());
+                sb.append(',');
+                sb.append(headermodel.getinvoice().get(i).gettotal());
+                sb.append('\n');
+            
+            }
+
+            writer.write(sb.toString());
+            writer.flush();
+            writer.close();
+            
+
+            System.out.println("done!");
+
+        } catch (FileNotFoundException e) {
+            System.out.println(e.getMessage());
+        }
+        
+        LineModel linemodel = (LineModel) fram.gettable_line().getModel();
+        
+        for (int i = 0; i < linemodel.getLine().size(); i++) {
+            System.out.println(linemodel.getLine().get(i).getItem());
+                      
+        }
+        try (FileWriter writer = new FileWriter("test.csv")) {
+            StringBuilder sb = new StringBuilder();
+           // sb.append("ItemName,ItemPrice,Count,ItemTotal" + '\n');
+
+            for (int i = 0; i < linemodel.getLine().size(); i++) {
+               sb.append(linemodel.getLine().get(i).getInvoice().getNumber());
+                sb.append(',');
+                sb.append(linemodel.getLine().get(i).getItem());
+                sb.append(',');
+                sb.append(linemodel.getLine().get(i).getInv_prices());
+                sb.append(',');
+                sb.append(linemodel.getLine().get(i).getInv_count());
+                sb.append(',');
+               // sb.append(linemodel.getLine().get(i).getTotal());
+                sb.append('\n');
+            }
+
+            writer.write(sb.toString());
+            writer.flush();
+            writer.close();
+            
+
+            System.out.println("done!");
+
+        } catch (FileNotFoundException e) {
+            System.out.println(e.getMessage());
+        }
+         
+    
     }
 
    /* private void Invoice() {
@@ -254,24 +340,31 @@ public class Invoice_Listener implements ActionListener , ListSelectionListener{
 
 
     private void SubmitTheNewLine() {
-        String itemrname = newlines.getNamel().getText();
+        String itemname = newlines.getNamel().getText();
         String count = newlines.getCountl().getText();
         String price = newlines.getPricel().getText();
 
+        int r =  fram.gettable_invoice().getSelectedRow();
+        
         newlines.setVisible(false);
         newlines.dispose();
-        int c = Integer.valueOf(count);
-        double p=Double.parseDouble(price);
-          InvoiceLine in = new InvoiceLine(itemrname, p, c, invoice);
-        //fram.geti
-         
+        int c = Integer.parseInt(count);
+        double p = Double.parseDouble(price);
+        
+        InvoiceLine in = new InvoiceLine(itemname, p, c, fram.getInvoic().get(r));
+       // System.out.println(invoice.getNumber());
 
-       // fram.getInvoic().add(in);
-        ((LineModel)fram.gettable_invoice().getModel()).fireTableDataChanged();
+        LineModel linemodel = (LineModel) fram.gettable_line().getModel();
+        linemodel.getLine().add(in);
+        linemodel.fireTableDataChanged();
+
+        for (int i = 0; i < linemodel.getLine().size(); i++) {
+            System.out.println(linemodel.getLine().get(i).getItem());
         }
 
-   
-
+        
+        }
+ 
     private void CancelTheNewLine() {
         newlines.setVisible(true);
         newlines.dispose();

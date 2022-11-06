@@ -19,7 +19,9 @@ private List<InvoiceHedear> invo;
     public HeaderModel(List<InvoiceHedear> invoi) {
        this.invo = invoi; 
     }
-
+public List<InvoiceHedear> getinvoice() {
+        return invo;
+    }
     @Override
     public int getRowCount() {
         return invo.size();

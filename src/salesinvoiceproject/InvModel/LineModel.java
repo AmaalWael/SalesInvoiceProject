@@ -20,7 +20,7 @@ private List<InvoiceLine> line;
         this.line = line;
     }
 
-    public List<InvoiceLine> getLine() {
+     public List<InvoiceLine> getLine() {
         return line;
     }
 
